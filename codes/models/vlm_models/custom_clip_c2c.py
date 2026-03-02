@@ -75,12 +75,21 @@ class TextEncoder(nn.Module):
         self.ln_final = clip_model.ln_final
         self.text_projection = clip_model.text_projection
 
-        for block in self.transformer.resblocks:
-            block.attn_mask = block.attn_mask[:cfg.ctx_length, :cfg.ctx_length]
+        # ------------ 修复原版代码留下的坑 ------------
+        # 备份 CLIP 原生的完整 attn_mask (77x77)，不进行破坏性裁剪
+        self.register_buffer('full_attn_mask', clip_model.transformer.resblocks[0].attn_mask.clone())
         self.dtype = clip_model.dtype
 
     def forward(self, x, tokenized_prompts):
-        x = x.permute(1, 0, 2)
+        x = x.permute(1, 0, 2)  # shape: [seq_len, batch_size, dim]
+        
+        # ------------ 动态分配掩码大小 ------------
+        # 无论是 ctx_length(10) 还是标准 clip tokenize(77)，动态截取对应的掩码
+        seq_len = x.shape[0]
+        for block in self.transformer.resblocks:
+            block.attn_mask = self.full_attn_mask[:seq_len, :seq_len]
+        # ------------------------------------------
+            
         x = self.transformer(x)
         x = x.permute(1, 0, 2)
         x = self.ln_final(x)
