@@ -189,7 +189,8 @@ class CustomCLIP(nn.Module):
             verb_dist = pairwise_dist(v_hyp, t_v_hyp_all, curv=c_fp32)
             obj_dist = pairwise_dist(o_hyp, t_o_hyp_all, curv=c_fp32)
 
-            temp = torch.clamp(self.cls_temp.float(), min=0.01)
+            temp = F.softplus(self.cls_temp.float()) + 0.01
+            temp = torch.clamp(temp, max=0.1)
             verb_logits = -verb_dist / temp
             obj_logits = -obj_dist / temp
 
