@@ -199,7 +199,6 @@ class CustomCLIP(nn.Module):
 
             predict = {
                 'c_pos': c_pos,
-                'temp': temp,
                 'verb_logits': verb_logits,
                 'obj_logits': obj_logits,
                 'v_hyp': v_hyp,
