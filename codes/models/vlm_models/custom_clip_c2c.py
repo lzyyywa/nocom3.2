@@ -176,7 +176,7 @@ class CustomCLIP(nn.Module):
         # 【核心修正 4】：提取组合视觉特征 v_c
         v_c_feat = self.c2c_CE1(video_features.mean(dim=-1))
 
-        c_pos = F.softplus(self.c)
+        c_pos = torch.clamp(F.softplus(self.c), min=0.5)
 
         with torch.cuda.amp.autocast(enabled=False):
             c_fp32 = c_pos.float()
