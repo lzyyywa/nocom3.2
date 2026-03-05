@@ -48,7 +48,7 @@ def get_optimizer_vlm(cfg,model):
                 prompt_param.append(param)
         for name, param in model.named_parameters():
             # 【终极修正】：坚决把 scale 踢出去，只留 c2c 和 cls_temp，锁死双曲空间尺度！
-            if 'c2c' in name or 'cls_temp' in name:
+            if 'c2c' in name or 'cls_temp' in name or name == 'c':
                 c2c_with_wd.append(param)
                 
         optimizer = torch.optim.AdamW([
